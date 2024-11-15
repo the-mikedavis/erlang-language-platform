@@ -1,3 +1,6 @@
 !Cargo.lock
 /target
 meta/cargo/.global-cache
+
+/.direnv/
+/result
