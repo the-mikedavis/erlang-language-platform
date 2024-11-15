@@ -1249,7 +1249,8 @@ dependencies = [
 [[package]]
 name = "la-arena"
 version = "0.3.1"
-source = "git+https://github.com/rust-lang/rust-analyzer?rev=2024-07-29#fd74511f34ae6c165466543cc6e55ea60e7365af"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3752f229dcc5a481d60f385fa479ff46818033d881d2d801aa27dffcfb5e8306"
 
 [[package]]
 name = "lazy_static"
