@@ -44,8 +44,8 @@ pub struct Link {
     pub text: String,
 }
 
-pub(crate) fn annotations(db: &RootDatabase, file_id: FileId) -> Vec<Annotation> {
-    let mut annotations = Vec::default();
+pub(crate) fn annotations(_db: &RootDatabase, _file_id: FileId) -> Vec<Annotation> {
+    let annotations = Vec::default();
     // @fb-only
     annotations
 }

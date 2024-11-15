@@ -121,7 +121,7 @@ mod tests {
     }
 
     // @fb-only
-    // @oss-only #[allow(dead_code)]
+    #[allow(dead_code)]
     fn slow_function_dict() {
         check_diagnostics(
             r#"

@@ -82,10 +82,7 @@ fn check_function(
         def,
         mfas,
         &move |CheckCallCtx {
-                   args,
-                   in_clause,
-                   parents,
-                   ..
+                   args, in_clause, ..
                }: CheckCallCtx<'_, ()>| {
             let is_safe;
             // @fb-only

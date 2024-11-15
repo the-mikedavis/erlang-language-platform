@@ -1587,17 +1587,17 @@ impl GleanIndexer {
     fn resolve_macro_v2(
         sema: &Semantic<'_>,
         macro_def: &InFile<DefineId>,
-        args: &[ExprId],
+        _args: &[ExprId],
         source_file: &InFile<ast::SourceFile>,
         ctx: &AnyCallBackCtx,
     ) -> Option<XRef> {
-        let (_, source_map, expr_source) = ctx.body_with_expr_source(&sema)?;
+        let (_, _source_map, expr_source) = ctx.body_with_expr_source(&sema)?;
         let range = Self::find_range(&sema, &ctx, &source_file, &expr_source)?;
         let form_list = sema.form_list(macro_def.file_id);
         let define = &form_list[macro_def.value];
         let name = define.name.name();
         let expansion = Self::expand_macro(sema, &expr_source, source_file);
-        let mut target = MacroTarget {
+        let target = MacroTarget {
             file_id: macro_def.file_id.into(),
             name: name.to_string(),
             arity: define.name.arity(),
@@ -1605,7 +1605,7 @@ impl GleanIndexer {
             ods_url: None,
         };
         // @fb-only
-            // @fb-only
+        // @fb-only
         Some(XRef {
             source: range.into(),
             target: XRefTarget::Macro(target.into()),
@@ -2451,7 +2451,7 @@ mod tests {
 
     #[test]
     fn xref_macro_ods_v2_test() {
-        let spec = r#"
+        let _spec = r#"
         //- /src/macro.erl
             -module(macro).
             -define(COUNT_INFRA(X), X).
