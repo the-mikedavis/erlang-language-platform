@@ -24,10 +24,10 @@ use elp_log::timeit;
 use elp_log::FileLogger;
 use elp_log::Logger;
 use elp_project_model::buck::BuckQueryConfig;
-use elp_project_model::eqwalizer_support;
+// use elp_project_model::eqwalizer_support;
 use elp_project_model::otp::ERL;
-use include_dir::include_dir;
-use include_dir::Dir;
+// use include_dir::include_dir;
+// use include_dir::Dir;
 use lsp_server::Connection;
 
 mod args;
@@ -52,7 +52,7 @@ use crate::args::Args;
 #[cfg(not(target_env = "msvc"))]
 #[global_allocator]
 static GLOBAL: Jemalloc = Jemalloc;
-static EQWALIZER_SUPPORT_DIR: Dir = include_dir!("$EQWALIZER_SUPPORT_DIR");
+// static EQWALIZER_SUPPORT_DIR: Dir = include_dir!("$EQWALIZER_SUPPORT_DIR");
 static INIT: Once = Once::new();
 
 /// Thread stack size for rayon, in bytes.
@@ -80,9 +80,9 @@ fn handle_res(result: Result<()>, stderr: &mut dyn Write) -> i32 {
 }
 
 fn setup_static(args: &Args) {
-    if let Err(err) = eqwalizer_support::setup_eqwalizer_support(&EQWALIZER_SUPPORT_DIR) {
-        log::warn!("Failed to setup eqwalizer_support: {}", err);
-    }
+    // if let Err(err) = eqwalizer_support::setup_eqwalizer_support(&EQWALIZER_SUPPORT_DIR) {
+    //     log::warn!("Failed to setup eqwalizer_support: {}", err);
+    // }
     if let Some(erl) = &args.erl {
         let path = fs::canonicalize(erl).expect("erl path should be valid");
         let mut erl = ERL.write().unwrap();
