@@ -9,7 +9,6 @@
 
 use std::fs;
 use std::path::Path;
-use std::path::PathBuf;
 use std::process::Command;
 
 use anyhow::anyhow;
@@ -285,18 +284,10 @@ fn into_tuple(mut term: eetf::Term) -> Result<eetf::Term> {
 }
 
 fn into_abs_path(term: eetf::Term) -> Result<AbsPathBuf> {
-    let path_buf = PathBuf::from(into_string(term)?);
-    let path = if fs::metadata(&path_buf).is_ok() {
-        match fs::canonicalize::<PathBuf>(path_buf) {
-            Ok(path) => path,
-            Err(err) => bail!("expected absolute path, got: {:?}", err),
-        }
-    } else {
-        path_buf
-    };
-    Ok(AbsPathBuf::assert(
-        Utf8PathBuf::from_path_buf(path).expect("Could not convert to Utf8PathBuf"),
-    ))
+    let path = Utf8PathBuf::from(into_string(term)?);
+    AbsPathBuf::try_from(path)
+        .map(|path| path.normalize())
+        .map_err(|err| anyhow!("expected an absolute path: {:?}", err))
 }
 
 fn into_vec(term: eetf::Term) -> Result<Vec<eetf::Term>> {
