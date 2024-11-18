@@ -119,8 +119,8 @@ impl JsonProjectAppData {
                 .collect(),
             ebin: project_app_data
                 .ebin
-                .clone()
-                .map(|p| abs_path_buf_to_relative_string(&p, &project_app_data.dir)),
+                .as_ref()
+                .map(|p| abs_path_buf_to_relative_string(p, &project_app_data.dir)),
             extra_src_dirs: project_app_data.extra_src_dirs.clone(),
             include_dirs: project_app_data
                 .include_dirs
@@ -144,14 +144,18 @@ fn convert_macro(mac: &eetf::Term) -> (String, String) {
 }
 
 fn abs_path_buf_to_relative_string(abs_path: &AbsPathBuf, base: &AbsPathBuf) -> String {
-    if let Some(relative) = abs_path.strip_prefix(base) {
-        relative.as_str().to_string()
+    if let Some(relative) = abs_path.strip_prefix(base).map(|path| path.as_str()) {
+        if relative.is_empty() {
+            ".".to_string()
+        } else {
+            relative.to_string()
+        }
     } else {
-        let str = abs_path.as_os_str().to_string_lossy().to_string();
+        let str = abs_path.as_str();
         if let Some(stripped) = str.strip_prefix('/') {
             stripped.to_string()
         } else {
-            str
+            str.to_string()
         }
     }
 }
