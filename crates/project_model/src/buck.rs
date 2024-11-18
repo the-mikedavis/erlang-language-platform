@@ -162,7 +162,7 @@ impl BuckProject {
     pub fn load_from_config(
         buck_conf: &BuckConfig,
         query_config: &BuckQueryConfig,
-    ) -> Result<(BuckProject, Vec<ProjectAppData>, Utf8PathBuf), anyhow::Error> {
+    ) -> Result<(BuckProject, Vec<ProjectAppData>, AbsPathBuf), anyhow::Error> {
         let (otp_root, project_app_data, project) = if query_config == &BuckQueryConfig::Original {
             load_from_config_orig(buck_conf)?
         } else {
@@ -178,7 +178,7 @@ impl BuckProject {
 
 fn load_from_config_orig(
     buck_conf: &BuckConfig,
-) -> Result<(Utf8PathBuf, Vec<ProjectAppData>, BuckProject), anyhow::Error> {
+) -> Result<(AbsPathBuf, Vec<ProjectAppData>, BuckProject), anyhow::Error> {
     let target_info = load_buck_targets_orig(buck_conf)?;
     let otp_root = Otp::find_otp()?;
     let project_app_data = targets_to_project_data_orig(&target_info.targets, &otp_root);
@@ -191,7 +191,7 @@ fn load_from_config_orig(
 
 fn load_from_config_bxl(
     buck_conf: &BuckConfig,
-) -> Result<(Utf8PathBuf, Vec<ProjectAppData>, BuckProject), anyhow::Error> {
+) -> Result<(AbsPathBuf, Vec<ProjectAppData>, BuckProject), anyhow::Error> {
     let target_info = load_buck_targets_bxl(buck_conf)?;
     let otp_root = Otp::find_otp()?;
     let project_app_data = targets_to_project_data_bxl(&target_info.targets, &otp_root);
@@ -866,7 +866,7 @@ fn examine_path(path: &AbsPath, dir_based_on_buck_file: &AbsPath) -> Option<AbsP
 
 fn targets_to_project_data_orig(
     targets: &FxHashMap<TargetFullName, Target>,
-    otp_root: &Utf8Path,
+    otp_root: &AbsPath,
 ) -> Vec<ProjectAppData> {
     let it = targets
         .values()
@@ -909,7 +909,7 @@ fn targets_to_project_data_orig(
         .filter(|target| target.target_type != TargetType::ErlangTest)
         .filter_map(|target| target.dir.parent().map(|p| p.to_path_buf()))
         .collect();
-    global_inc.push(AbsPathBuf::assert(otp_root.to_path_buf()));
+    global_inc.push(otp_root.to_path_buf());
     for (_, mut acc) in accs {
         acc.add_global_includes(global_inc.clone());
         result.push(acc.into());
@@ -926,7 +926,7 @@ enum IsCached {
 
 fn targets_to_project_data_bxl(
     targets: &FxHashMap<TargetFullName, Target>,
-    otp_root: &Utf8Path,
+    otp_root: &AbsPath,
 ) -> Vec<ProjectAppData> {
     let mut result: Vec<ProjectAppData> = vec![];
     let mut includes_cache: FxHashMap<TargetFullName, (IsCached, &Target, FxHashSet<AbsPathBuf>)> =
@@ -947,7 +947,7 @@ fn targets_to_project_data_bxl(
         }
         includes_cache.insert(target.name.clone(), (IsCached::No, &target, includes));
     }
-    let otp_includes = FxHashSet::from_iter(vec![AbsPathBuf::assert(otp_root.to_path_buf())]);
+    let otp_includes = FxHashSet::from_iter(vec![otp_root.to_path_buf()]);
     for (target_full_name, target) in targets {
         let includes = apps_and_deps_includes(&mut includes_cache, target_full_name, &otp_includes);
 
