@@ -145,7 +145,7 @@ fn make_diagnostic(
     )];
     Some(
         Diagnostic::new(op.to_code(), message, map_function_call_range)
-            .with_severity(Severity::Information)
+            .with_severity(Severity::WeakWarning)
             .with_ignore_fix(sema, file_id)
             .with_fixes(Some(fixes))
             .add_categories([Category::SimplificationRule]),

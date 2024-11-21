@@ -34,7 +34,7 @@ pub(crate) static DESCRIPTOR: DiagnosticDescriptor = DiagnosticDescriptor {
         experimental: false,
         include_generated: false,
         include_tests: true,
-        default_disabled: false,
+        default_disabled: true,
     },
     checker: &|diags, sema, file_id, _file_kind| {
         record_tuple_match(diags, sema, file_id);

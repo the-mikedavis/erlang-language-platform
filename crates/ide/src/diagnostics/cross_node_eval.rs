@@ -31,7 +31,7 @@ pub(crate) static DESCRIPTOR: DiagnosticDescriptor = DiagnosticDescriptor {
         experimental: false,
         include_generated: false,
         include_tests: false,
-        default_disabled: false,
+        default_disabled: true,
     },
     checker: &|diags, sema, file_id, _ext| {
         cross_node_eval(diags, sema, file_id);
