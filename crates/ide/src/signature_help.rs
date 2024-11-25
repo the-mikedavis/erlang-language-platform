@@ -73,6 +73,10 @@ pub(crate) fn signature_help(
     let syntax = source_file.value.syntax();
     let token = find_best_token(&sema, position)?.value;
     let call = algo::find_node_at_offset::<ast::Call>(syntax, position.offset)?;
+    // Skip multi-line expressions.
+    if call.syntax().text().contains_char('\n') {
+        return None;
+    }
     let call_expr = sema.to_expr(InFile::new(
         position.file_id,
         &ast::Expr::Call(call.clone()),
