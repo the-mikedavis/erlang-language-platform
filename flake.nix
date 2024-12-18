@@ -73,6 +73,8 @@
             clang
           ];
           RUST_BACKTRACE = "1";
+          # Skip the eqwalizer build script.
+          ELP_EQWALIZER_SKIP = "1";
         }
       );
     };

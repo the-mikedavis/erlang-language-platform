@@ -201,13 +201,13 @@ lazy_static! {
     // triggering the Drop handler, until the programme exits.
     // It has a Mutex so it can be updated if the operating systen deletes the file
     // for a long-running ELP server.
-    static ref EQWALIZER_EXE: Arc<Mutex<EqwalizerExe>> = Arc::new(Mutex::new(EqwalizerExe::ensure_exe()));
+    static ref EQWALIZER_EXE: Option<Arc<Mutex<EqwalizerExe>>> = EqwalizerExe::ensure_exe();
 }
 
 impl EqwalizerExe {
     // Identify the required Eqwalizer executable, and ensure it is
     // available on the file system
-    fn ensure_exe() -> Self {
+    fn ensure_exe() -> Option<Arc<Mutex<Self>>> {
         let env = env::var("ELP_EQWALIZER_PATH");
         let (path, ext, temp_file) = if let Ok(path) = env {
             let path = PathBuf::from(path);
@@ -218,15 +218,16 @@ impl EqwalizerExe {
                 .unwrap()
                 .to_string();
             (path, ext, None)
-        } else {
-            let extension = env!("ELP_EQWALIZER_EXT").to_string();
-            let eqwalizer_src = include_bytes!(concat!(env!("OUT_DIR"), "/eqwalizer"));
+        } else if let Ok(extension) = env::var("ELP_EQWALIZER_EXT") {
+            let mut p = PathBuf::from(env!("OUT_DIR"));
+            p.push("eqwalizer");
+            let eqwalizer_src = fs::read(p).expect("couldn't read eqwalizer bytes");
             let mut temp_file = Builder::new()
                 .prefix("eqwalizer")
                 .tempfile()
                 .expect("can't create eqwalizer temp executable");
             temp_file
-                .write_all(eqwalizer_src)
+                .write_all(&eqwalizer_src)
                 .expect("can't create eqwalizer temp executable");
 
             let temp_file = temp_file.into_temp_path();
@@ -238,6 +239,8 @@ impl EqwalizerExe {
             fs::set_permissions(&temp_file, perm).expect("can't create eqwalizer temp executable");
 
             (temp_file.to_path_buf(), extension, Some(temp_file))
+        } else {
+            return None;
         };
 
         let (cmd, args) = match ext.as_str() {
@@ -249,11 +252,11 @@ impl EqwalizerExe {
             _ => panic!("Unknown eqwalizer executable {:?}", path),
         };
 
-        Self {
+        Some(Arc::new(Mutex::new(Self {
             cmd,
             args,
             _file: temp_file.map(Arc::new),
-        }
+        })))
     }
 
     pub fn cmd(&self) -> Command {
@@ -264,14 +267,9 @@ impl EqwalizerExe {
 }
 
 impl Eqwalizer {
-    fn cmd(&self) -> Command {
-        let exe = &mut EQWALIZER_EXE.lock();
-        if !exe.cmd.is_file() {
-            log::error!("Eqwalizer exe has disappeared, recreating");
-            // We have a problem with the eqwalizer exe file, recreate it
-            **exe = EqwalizerExe::ensure_exe();
-        }
-        exe.cmd()
+    fn cmd(&self) -> Option<Command> {
+        let exe = EQWALIZER_EXE.as_ref()?.lock();
+        Some(exe.cmd())
     }
 
     pub fn typecheck(
@@ -280,7 +278,12 @@ impl Eqwalizer {
         project_id: ProjectId,
         modules: Vec<&str>,
     ) -> EqwalizerDiagnostics {
-        let mut cmd = self.cmd();
+        let Some(mut cmd) = self.cmd() else {
+            return EqwalizerDiagnostics::Diagnostics {
+                errors: Default::default(),
+                type_info: Default::default(),
+            };
+        };
         db.eqwalizer_config().set_cmd_env(&mut cmd);
         cmd.arg("ipc");
         cmd.args(modules);
