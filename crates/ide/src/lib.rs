@@ -564,7 +564,7 @@ impl Analysis {
                 .all_modules()
                 .iter()
                 .filter_map(|name: &ModuleName| {
-                    if total <= LIMIT && name.as_str().contains(query) {
+                    if total <= LIMIT && name.as_unquoted_str().contains(query) {
                         let file_id = module_index.file_for_module(name)?;
                         let module = Module {
                             file: File { file_id },

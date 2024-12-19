@@ -145,7 +145,7 @@ fn converted_stub(
                 Err(Error::BEAMNotFound(beam_path.into()))
             }
         } else {
-            Err(Error::ModuleNotFound(module.as_str().into()))
+            Err(Error::ModuleNotFound(module.to_string()))
         }
     } else {
         let ast = db.get_erl_ast_bytes(project_id, module)?;
@@ -163,7 +163,8 @@ fn beam_path(
     let _ = stdx::panic_context::enter(format!("\nbeam_path: {:?}", file_id));
     let app = db.file_app_data(file_id)?;
     let ebin = app.ebin_path.as_ref()?;
-    let filename = format!("{}.beam", module.as_str());
+    // The compiler does not quote atom names like `'Elixir.Foo'` for the output `.beam` files.
+    let filename = format!("{}.beam", module.as_unquoted_str());
     Some(ebin.join(filename))
 }
 
@@ -191,7 +192,7 @@ fn expanded_stub(
     module: ModuleName,
 ) -> Result<Arc<ModuleStub>, Error> {
     let stub = db.converted_stub(project_id, module.clone())?;
-    let mut expander = StubExpander::new(db, project_id, module.as_str().into(), &stub);
+    let mut expander = StubExpander::new(db, project_id, module, &stub);
     expander
         .expand(stub.to_vec())
         .map(|()| Arc::new(expander.stub))
@@ -204,7 +205,7 @@ fn contractive_stub(
     module: ModuleName,
 ) -> Result<Arc<ModuleStub>, Error> {
     let stub = db.expanded_stub(project_id, module.clone())?;
-    let checker = StubContractivityChecker::new(db, project_id, module.as_str().into());
+    let checker = StubContractivityChecker::new(db, project_id, module);
     checker
         .check(&stub)
         .map(Arc::new)
@@ -230,7 +231,7 @@ fn transitive_stub(
     module: ModuleName,
 ) -> Result<Arc<ModuleStub>, Error> {
     let stub = db.covariant_stub(project_id, module.clone())?;
-    let mut checker = TransitiveChecker::new(db, project_id, module.as_str().into());
+    let mut checker = TransitiveChecker::new(db, project_id, module);
     checker
         .check(&stub)
         .map(Arc::new)

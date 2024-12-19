@@ -50,7 +50,7 @@ impl EqwalizerLoader for crate::RootDatabase {
         let mut module_names = vec![];
         for module in modules {
             match module_index.module_for_file(module) {
-                Some(f) => module_names.push(f.as_str()),
+                Some(f) => module_names.push(f),
                 None => {
                     // Context for T171541590
                     let _ = stdx::panic_context::enter(format!("\ntypecheck: {:?}", module));
@@ -110,8 +110,8 @@ fn eqwalizer_stats(
     file_id: FileId,
 ) -> Option<Arc<Vec<EqwalizerDiagnostic>>> {
     let module_index = db.module_index(project_id);
-    let module_name: &str = module_index.module_for_file(file_id)?.as_str();
-    Some(db.compute_eqwalizer_stats(project_id, ModuleName::new(module_name)))
+    let module_name = module_index.module_for_file(file_id)?;
+    Some(db.compute_eqwalizer_stats(project_id, module_name.clone()))
 }
 
 fn type_at_position(
@@ -129,7 +129,7 @@ fn type_at_position(
         let end: u32 = range.range.end().into();
         let module_index = db.module_index(project_id);
         let module = module_index.module_for_file(range.file_id)?;
-        let file_types = type_info.get(&module.to_string())?;
+        let file_types = type_info.get(module)?;
         let (text_range, ty) = file_types
             .iter()
             .filter_map(|(pos, ty)| match pos {
@@ -308,7 +308,7 @@ fn id_name_and_location(
     project_id: ProjectId,
     type_id: &RemoteId,
 ) -> Option<(SmolStr, FileRange)> {
-    let module = ModuleName::new(type_id.module.as_str());
+    let module = type_id.module.clone();
     let stub = db.transitive_stub(project_id, module.clone()).ok()?;
     let decl = stub.types.get(&type_id.to_owned().into())?;
     let loc = decl_location(db, project_id, module, &decl.location)?;
@@ -320,7 +320,7 @@ fn record_name_and_location(
     project_id: ProjectId,
     record: &eqwalizer::types::RecordType,
 ) -> Option<(SmolStr, FileRange)> {
-    let module = ModuleName::new(record.module.as_str());
+    let module = record.module.clone();
     let stub = db.transitive_stub(project_id, module.clone()).ok()?;
     let decl = stub.records.get(&record.name)?;
     let loc = decl_location(db, project_id, module, &decl.location)?;
@@ -395,42 +395,37 @@ impl EqwalizerErlASTStorage for crate::RootDatabase {
                 Err(Error::ParseError)
             }
         } else {
-            Err(Error::ModuleNotFound(module.as_str().into()))
+            Err(Error::ModuleNotFound(module.to_string()))
         }
     }
 }
 
 impl elp_eqwalizer::DbApi for crate::RootDatabase {
-    fn eqwalizing_start(&self, module: String) {
+    fn eqwalizing_start(&self, module: ModuleName) {
         if let Some(reporter) = self.eqwalizer_progress_reporter.lock().as_mut() {
             reporter.start_module(module)
         }
     }
 
-    fn eqwalizing_done(&self, module: String) {
+    fn eqwalizing_done(&self, module: &ModuleName) {
         if let Some(reporter) = self.eqwalizer_progress_reporter.lock().as_mut() {
-            reporter.done_module(&module);
+            reporter.done_module(module);
         }
     }
 
-    fn set_module_ipc_handle(&self, module: ModuleName, handle: Option<Arc<Mutex<IpcHandle>>>) {
+    fn set_module_ipc_handle(&self, module: &ModuleName, handle: Option<Arc<Mutex<IpcHandle>>>) {
         match handle {
             Some(handle) => {
-                self.ipc_handles
-                    .write()
-                    .insert(module.as_str().into(), handle);
+                self.ipc_handles.write().insert(module.clone(), handle);
             }
             None => {
-                self.ipc_handles.write().remove(module.as_str());
+                self.ipc_handles.write().remove(module);
             }
         }
     }
 
-    fn module_ipc_handle(&self, module: ModuleName) -> Option<Arc<Mutex<IpcHandle>>> {
-        self.ipc_handles
-            .read()
-            .get(module.as_str())
-            .map(|v| v.to_owned())
+    fn module_ipc_handle(&self, module: &ModuleName) -> Option<Arc<Mutex<IpcHandle>>> {
+        self.ipc_handles.read().get(module).map(|v| v.to_owned())
     }
 }
 

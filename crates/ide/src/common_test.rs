@@ -320,7 +320,7 @@ fn def_to_runnable(sema: &Semantic, def: &FunctionDef, group: GroupName) -> Opti
 }
 
 pub fn is_suite(module_name: &ModuleName) -> bool {
-    module_name.ends_with(SUFFIX)
+    module_name.as_unquoted_str().ends_with(SUFFIX)
 }
 
 #[cfg(test)]

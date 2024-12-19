@@ -96,7 +96,7 @@ pub(crate) fn add_completions(
                 complete_remote_function_call(
                     sema,
                     file_position.file_id,
-                    module_name.as_str(),
+                    module_name.as_unquoted_str(),
                     name_prefix.text(),
                     next_token,
                     acc,
@@ -126,7 +126,7 @@ pub(crate) fn add_completions(
                 complete_remote_function_call(
                     sema,
                     file_position.file_id,
-                    module_name.as_str(),
+                    module_name.as_unquoted_str(),
                     "",
                     next_token,
                     acc,

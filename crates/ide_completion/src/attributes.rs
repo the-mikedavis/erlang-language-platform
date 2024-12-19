@@ -28,50 +28,46 @@ pub(crate) fn add_completions(
     let previous_tokens: &[_] = previous_tokens.as_ref().unwrap_or(&default);
     match previous_tokens {
         // -behavior(behavior_name_prefix~
-        [
-            ..,
-            (K::ANON_DASH, _),
-            (K::ANON_BEHAVIOR | K::ANON_BEHAVIOUR, _),
-            (K::ANON_LPAREN, _),
-            (K::ATOM, behavior_name_prefix),
-        ] if trigger.is_none() => || -> _ {
-            let modules = sema.resolve_module_names(file_position.file_id)?;
-            let completions = modules.into_iter().filter_map(|m| {
-                if m.starts_with(behavior_name_prefix.text()) {
-                    let module = sema.resolve_module_name(file_position.file_id, &m)?;
-                    let def_map = sema.def_map(module.file.file_id);
-                    if def_map.get_callbacks().is_empty() {
-                        None
+        [.., (K::ANON_DASH, _), (K::ANON_BEHAVIOR | K::ANON_BEHAVIOUR, _), (K::ANON_LPAREN, _), (K::ATOM, behavior_name_prefix)]
+            if trigger.is_none() =>
+        {
+            || -> _ {
+                let modules = sema.resolve_module_names(file_position.file_id)?;
+                let completions = modules.into_iter().filter_map(|m| {
+                    if m.as_unquoted_str().starts_with(behavior_name_prefix.text()) {
+                        let module =
+                            sema.resolve_module_name(file_position.file_id, m.as_unquoted_str())?;
+                        let def_map = sema.def_map(module.file.file_id);
+                        if def_map.get_callbacks().is_empty() {
+                            None
+                        } else {
+                            Some(Completion {
+                                label: m.to_string(),
+                                kind: Kind::Behavior,
+                                contents: Contents::SameAsLabel,
+                                position: None,
+                                sort_text: None,
+                                deprecated: false,
+                            })
+                        }
                     } else {
-                        Some(Completion {
-                            label: m.to_string(),
-                            kind: Kind::Behavior,
-                            contents: Contents::SameAsLabel,
-                            position: None,
-                            sort_text: None,
-                            deprecated: false,
-                        })
+                        None
                     }
-                } else {
-                    None
-                }
-            });
+                });
 
-            acc.extend(completions);
-            Some(true)
-        }()
-        .unwrap_or_default(),
+                acc.extend(completions);
+                Some(true)
+            }()
+            .unwrap_or_default()
+        }
 
         [.., (K::ANON_DASH, _), (K::ATOM, attr_name)] if matches!(trigger, Some('-') | None) => {
             if "module".starts_with(attr_name.text()) {
                 if let Some(module) = sema.module_name(file_position.file_id) {
                     acc.push(Completion {
                         kind: Kind::Attribute,
-                        label: format!("-module({}).", module.to_quoted_string()),
-                        contents: Contents::Snippet(format!(
-                            "module({}).",
-                            module.to_quoted_string()
-                        )),
+                        label: format!("-module({}).", module),
+                        contents: Contents::Snippet(format!("module({}).", module)),
                         position: None,
                         sort_text: None,
                         deprecated: false,

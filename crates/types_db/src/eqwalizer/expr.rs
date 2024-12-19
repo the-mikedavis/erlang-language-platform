@@ -7,6 +7,7 @@
  * of this source tree.
  */
 
+use elp_base_db::AtomName;
 use elp_syntax::SmolStr;
 use serde::Deserialize;
 use serde::Serialize;
@@ -310,7 +311,7 @@ pub struct ReceiveWithTimeout {
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 pub struct RecordCreate {
     pub location: Pos,
-    pub rec_name: SmolStr,
+    pub rec_name: AtomName,
     #[serde(default)]
     pub fields: Vec<RecordField>,
 }
@@ -319,7 +320,7 @@ pub struct RecordCreate {
 pub struct RecordUpdate {
     pub location: Pos,
     pub expr: Box<Expr>,
-    pub rec_name: SmolStr,
+    pub rec_name: AtomName,
     #[serde(default)]
     pub fields: Vec<RecordFieldNamed>,
 }
@@ -328,15 +329,15 @@ pub struct RecordUpdate {
 pub struct RecordSelect {
     pub location: Pos,
     pub expr: Box<Expr>,
-    pub rec_name: SmolStr,
-    pub field_name: SmolStr,
+    pub rec_name: AtomName,
+    pub field_name: AtomName,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 pub struct RecordIndex {
     pub location: Pos,
-    pub rec_name: SmolStr,
-    pub field_name: SmolStr,
+    pub rec_name: AtomName,
+    pub field_name: AtomName,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]

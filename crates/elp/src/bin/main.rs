@@ -395,29 +395,24 @@ mod tests {
                             let pretty_reporter =
                                 &mut reporting::PrettyReporter::new(&analysis, &loaded, &mut cli);
                             let module = module_index.module_for_file(file_id).unwrap();
-                            if let Some(diagnostics) = diagnostics_by_module.get(module.as_str()) {
+                            if let Some(diagnostics) = diagnostics_by_module.get(module) {
                                 pretty_reporter
                                     .write_eqwalizer_diagnostics(file_id, &diagnostics)
                                     .with_context(|| {
-                                        format!(
-                                            "Failed to write diagnostics for {}",
-                                            module.as_str()
-                                        )
+                                        format!("Failed to write diagnostics for {}", module)
                                     })
                                     .unwrap();
                             }
                             pretty_reporter
                                 .write_error_count()
                                 .with_context(|| {
-                                    format!("Failed to write diagnostics for {}", module.as_str())
+                                    format!("Failed to write diagnostics for {}", module)
                                 })
                                 .unwrap();
 
                             let exp_path = expect_file!(format!(
                                 "../resources/test/{}/{}/{}.pretty",
-                                project,
-                                app,
-                                module.as_str()
+                                project, app, module
                             ));
                             let (stdout, _) = cli.to_strings();
                             assert_normalised_file(exp_path, &stdout, project_path.into());

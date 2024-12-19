@@ -9,7 +9,6 @@
 
 use std::fs;
 use std::path::Path;
-use std::str;
 
 use anyhow::Context;
 use anyhow::Error;
@@ -21,6 +20,7 @@ use elp::cli::Cli;
 use elp::convert;
 use elp::otp_file_to_ignore;
 use elp_eqwalizer::Mode;
+use elp_ide::elp_ide_db::elp_base_db::AtomName;
 use elp_ide::elp_ide_db::elp_base_db::FileId;
 use elp_ide::elp_ide_db::elp_base_db::IncludeOtp;
 use elp_ide::erlang_service;
@@ -91,7 +91,7 @@ pub fn do_parse_all(
             move |db, (name, _, file_id)| -> Result<Vec<ParseDiagnostic>> {
                 let empty = Ok(vec![]);
                 match module {
-                    Some(module) if module != name.as_str() => {
+                    Some(module) if name != &module.as_str() => {
                         return empty;
                     }
                     _ => {}
@@ -104,7 +104,7 @@ pub fn do_parse_all(
                 }
 
                 do_parse_one(db, Some((name, to)), file_id, format)
-                    .with_context(|| format!("Failed to parse module {}", name.as_str()))
+                    .with_context(|| format!("Failed to parse module {}", name))
             },
         )
         .try_reduce(Vec::new, |mut acc, diagnostics| {
@@ -117,7 +117,7 @@ pub fn do_parse_all(
 
 pub fn do_parse_one(
     db: &Analysis,
-    to: Option<(&str, &Path)>,
+    to: Option<(&AtomName, &Path)>,
     file_id: FileId,
     format: erlang_service::Format,
 ) -> Result<Vec<ParseDiagnostic>> {

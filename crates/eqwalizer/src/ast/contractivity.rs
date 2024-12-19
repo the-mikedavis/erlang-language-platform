@@ -39,7 +39,6 @@
 
 use elp_base_db::ModuleName;
 use elp_base_db::ProjectId;
-use elp_syntax::SmolStr;
 use elp_types_db::eqwalizer::form::InvalidForm;
 use elp_types_db::eqwalizer::form::InvalidTypeDecl;
 use elp_types_db::eqwalizer::form::TypeDecl;
@@ -185,14 +184,14 @@ fn he_prop(s: &Prop, t: &Prop) -> Result<bool, ContractivityCheckError> {
 pub struct StubContractivityChecker<'d> {
     db: &'d dyn EqwalizerASTDatabase,
     project_id: ProjectId,
-    module: SmolStr,
+    module: ModuleName,
 }
 
 impl StubContractivityChecker<'_> {
     pub fn new(
         db: &dyn EqwalizerASTDatabase,
         project_id: ProjectId,
-        module: SmolStr,
+        module: ModuleName,
     ) -> StubContractivityChecker<'_> {
         StubContractivityChecker {
             db,
@@ -327,7 +326,7 @@ impl StubContractivityChecker<'_> {
         };
         let stub = self
             .db
-            .expanded_stub(self.project_id, ModuleName::new(id.module.as_str()))
+            .expanded_stub(self.project_id, id.module.clone())
             .map_err(|err| ContractivityCheckError::ErrorExpandingID(id.clone(), Box::new(err)))?;
         fn subst(decl: &TypeDecl, args: &[Type]) -> Type {
             if decl.params.is_empty() {

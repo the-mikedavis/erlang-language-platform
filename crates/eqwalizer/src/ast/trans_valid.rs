@@ -13,6 +13,7 @@
 //! all invalid declarations. I.e., if a type t1 depends on a type t2
 //! and t2 is invalid, then t1 will be tagged as invalid.
 
+use elp_base_db::AtomName;
 use elp_base_db::ModuleName;
 use elp_base_db::ProjectId;
 use elp_syntax::SmolStr;
@@ -41,11 +42,11 @@ use super::TransitiveCheckError;
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 enum Ref {
     RidRef(RemoteId),
-    RecRef(SmolStr, SmolStr),
+    RecRef(ModuleName, AtomName),
 }
 
 impl Ref {
-    fn module(&self) -> &SmolStr {
+    fn module(&self) -> &ModuleName {
         match self {
             Ref::RidRef(rid) => &rid.module,
             Ref::RecRef(module, _) => module,
@@ -56,7 +57,7 @@ impl Ref {
 pub struct TransitiveChecker<'d> {
     db: &'d dyn EqwalizerASTDatabase,
     project_id: ProjectId,
-    module: SmolStr,
+    module: ModuleName,
     in_progress: FxHashSet<Ref>,
     invalid_refs: FxHashMap<Ref, FxHashSet<Ref>>,
     maybe_invalid_refs: FxHashMap<Ref, FxHashSet<Ref>>,
@@ -66,7 +67,7 @@ impl TransitiveChecker<'_> {
     pub fn new(
         db: &dyn EqwalizerASTDatabase,
         project_id: ProjectId,
-        module: SmolStr,
+        module: ModuleName,
     ) -> TransitiveChecker<'_> {
         TransitiveChecker {
             db,
@@ -319,7 +320,7 @@ impl TransitiveChecker<'_> {
         let mut invalids = FxHashSet::default();
         match self
             .db
-            .covariant_stub(self.project_id, ModuleName::new(rref.module().as_str()))
+            .covariant_stub(self.project_id, rref.module().clone())
         {
             Ok(stub) => match rref {
                 Ref::RidRef(rid) => {
@@ -378,7 +379,7 @@ impl TransitiveChecker<'_> {
     fn collect_invalid_references(
         &mut self,
         refs: &mut FxHashSet<Ref>,
-        module: &SmolStr,
+        module: &ModuleName,
         ty: &Type,
         parent_ref: Option<&Ref>,
     ) -> Result<(), TransitiveCheckError> {

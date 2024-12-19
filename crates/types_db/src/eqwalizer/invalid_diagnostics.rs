@@ -7,6 +7,7 @@
  * of this source tree.
  */
 
+use elp_base_db::AtomName;
 use elp_syntax::SmolStr;
 use serde::Deserialize;
 use serde::Serialize;
@@ -80,7 +81,7 @@ pub struct NonProductiveRecursiveTypeAlias {
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 pub struct TransitiveInvalid {
     pub location: eqwalizer::Pos,
-    pub name: SmolStr,
+    pub name: AtomName,
     #[serde(default)]
     pub references: Vec<SmolStr>,
 }

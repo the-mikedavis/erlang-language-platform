@@ -137,7 +137,7 @@ fn do_parse_all(
                     && db.file_app_type(file_id).ok() != Some(Some(AppType::Dep))
                     && !ignored_apps.contains(&db.file_app_name(file_id).ok())
                 {
-                    do_parse_one(db, config, file_id, module_name.as_str(), args).unwrap()
+                    do_parse_one(db, config, file_id, module_name, args).unwrap()
                 } else {
                     None
                 }
@@ -151,7 +151,7 @@ fn do_parse_one(
     db: &Analysis,
     config: &DiagnosticsConfig,
     file_id: FileId,
-    name: &str,
+    name: &ModuleName,
     args: &Lint,
 ) -> Result<Option<(String, FileId, DiagnosticCollection)>> {
     if !args.include_tests && db.is_test_suite_or_test_helper(file_id)?.unwrap_or(false) {
@@ -584,7 +584,7 @@ impl<'a> Lints<'a> {
                             &self.analysis_host.analysis(),
                             self.cfg,
                             file_id,
-                            &name,
+                            &name.as_str().into(),
                             self.args,
                         )?;
                         let err_in_diags = diags.iter().any(|(_, file_id, diags)| {

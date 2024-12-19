@@ -7,6 +7,7 @@
  * of this source tree.
  */
 
+use elp_base_db::AtomName;
 use elp_syntax::SmolStr;
 use elp_types_db::eqwalizer::expr::Body;
 use elp_types_db::eqwalizer::expr::Clause;
@@ -194,7 +195,7 @@ impl Preprocessor {
         format!("$pp{}", var).into()
     }
 
-    fn eta_expand_unary_predicate(&mut self, location: &Pos, name: SmolStr) -> Lambda {
+    fn eta_expand_unary_predicate(&mut self, location: &Pos, name: AtomName) -> Lambda {
         let var_name = self.fresh_var();
         let test_call = Test::TestCall(TestCall {
             location: location.clone(),

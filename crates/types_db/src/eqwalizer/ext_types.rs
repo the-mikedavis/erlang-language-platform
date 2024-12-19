@@ -7,6 +7,7 @@
  * of this source tree.
  */
 
+use elp_base_db::AtomName;
 use elp_syntax::SmolStr;
 use serde::Deserialize;
 use serde::Serialize;
@@ -216,13 +217,13 @@ pub struct VarExtType {
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 pub struct RecordExtType {
     pub location: eqwalizer::Pos,
-    pub name: SmolStr,
+    pub name: AtomName,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 pub struct RecordRefinedExtType {
     pub location: eqwalizer::Pos,
-    pub name: SmolStr,
+    pub name: AtomName,
     #[serde(default)]
     pub refined_fields: Vec<RefinedField>,
 }
@@ -256,7 +257,7 @@ pub struct Constraint {
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 pub struct RefinedField {
-    pub label: SmolStr,
+    pub label: AtomName,
     pub ty: ExtType,
 }
 

@@ -114,11 +114,11 @@ pub struct EqwalizerExe {
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub enum EqwalizerDiagnostics {
     Diagnostics {
-        errors: FxHashMap<String, Vec<EqwalizerDiagnostic>>,
-        type_info: FxHashMap<String, Vec<(Pos, Type)>>,
+        errors: FxHashMap<ModuleName, Vec<EqwalizerDiagnostic>>,
+        type_info: FxHashMap<ModuleName, Vec<(Pos, Type)>>,
     },
     NoAst {
-        module: String,
+        module: ModuleName,
     },
     Error(String),
 }
@@ -167,10 +167,10 @@ impl EqwalizerDiagnostics {
 }
 
 pub trait DbApi {
-    fn eqwalizing_start(&self, module: String);
-    fn eqwalizing_done(&self, module: String);
-    fn set_module_ipc_handle(&self, module: ModuleName, handle: Option<Arc<Mutex<IpcHandle>>>);
-    fn module_ipc_handle(&self, module: ModuleName) -> Option<Arc<Mutex<IpcHandle>>>;
+    fn eqwalizing_start(&self, module: ModuleName);
+    fn eqwalizing_done(&self, module: &ModuleName);
+    fn set_module_ipc_handle(&self, module: &ModuleName, handle: Option<Arc<Mutex<IpcHandle>>>);
+    fn module_ipc_handle<'a>(&'a self, module: &'a ModuleName) -> Option<Arc<Mutex<IpcHandle>>>;
 }
 
 #[salsa::query_group(EqwalizerDiagnosticsDatabaseStorage)]
@@ -181,7 +181,7 @@ pub trait EqwalizerDiagnosticsDatabase: ast::db::EqwalizerASTDatabase + DbApi {
     fn module_diagnostics(
         &self,
         project_id: ProjectId,
-        module: String,
+        module: ModuleName,
     ) -> (Arc<EqwalizerDiagnostics>, Instant);
 }
 
@@ -276,7 +276,7 @@ impl Eqwalizer {
         &self,
         db: &dyn EqwalizerDiagnosticsDatabase,
         project_id: ProjectId,
-        modules: Vec<&str>,
+        modules: Vec<&ModuleName>,
     ) -> EqwalizerDiagnostics {
         let Some(mut cmd) = self.cmd() else {
             return EqwalizerDiagnostics::Diagnostics {
@@ -313,10 +313,9 @@ fn do_typecheck(
         let msg = handle.lock().receive()?;
         match msg {
             MsgFromEqWAlizer::EnteringModule { module } => {
-                let module_name = ModuleName::new(&module);
-                db.set_module_ipc_handle(module_name.clone(), Some(handle.clone()));
-                let diags = db.module_diagnostics(project_id, module).0;
-                db.set_module_ipc_handle(module_name, None);
+                db.set_module_ipc_handle(&module, Some(handle.clone()));
+                let diags = db.module_diagnostics(project_id, module.clone()).0;
+                db.set_module_ipc_handle(&module, None);
                 diagnostics = diagnostics.combine((*diags).clone());
                 match diagnostics {
                     EqwalizerDiagnostics::Error(_) | EqwalizerDiagnostics::NoAst { .. } => {
@@ -342,7 +341,7 @@ fn do_typecheck(
 fn module_diagnostics(
     db: &dyn EqwalizerDiagnosticsDatabase,
     project_id: ProjectId,
-    module: String,
+    module: ModuleName,
 ) -> (Arc<EqwalizerDiagnostics>, Instant) {
     // A timestamp is added to the return value to force Salsa to store new
     // diagnostics, and not attempt to back-date them if they are equal to
@@ -352,7 +351,7 @@ fn module_diagnostics(
     // Ideally, the config should be passed per module to eqWAlizer instead
     // of being set in the command's environment
     let _ = db.eqwalizer_config();
-    match get_module_diagnostics(db, project_id, module.clone()) {
+    match get_module_diagnostics(db, project_id, &module) {
         Ok(diag) => (Arc::new(diag), timestamp),
         Err(err) => (
             Arc::new(EqwalizerDiagnostics::Error(format!(
@@ -367,10 +366,10 @@ fn module_diagnostics(
 fn get_module_diagnostics(
     db: &dyn EqwalizerDiagnosticsDatabase,
     project_id: ProjectId,
-    module: String,
+    module: &ModuleName,
 ) -> Result<EqwalizerDiagnostics, anyhow::Error> {
     let handle_mutex = db
-        .module_ipc_handle(ModuleName::new(&module))
+        .module_ipc_handle(module)
         .ok_or(anyhow::Error::msg(format!(
             "no eqWAlizer handle for module {}",
             module
@@ -386,14 +385,13 @@ fn get_module_diagnostics(
                     module,
                     format
                 );
-                let module_name = ModuleName::new(&module);
                 let ast = {
                     match format {
                         EqWAlizerASTFormat::ConvertedForms => {
-                            db.converted_ast_bytes(project_id, module_name)
+                            db.converted_ast_bytes(project_id, module.clone())
                         }
                         EqWAlizerASTFormat::TransitiveStub => {
-                            db.transitive_stub_bytes(project_id, module_name)
+                            db.transitive_stub_bytes(project_id, module.clone())
                         }
                     }
                 };
@@ -446,7 +444,7 @@ fn get_module_diagnostics(
                 }
             }
             MsgFromEqWAlizer::EqwalizingStart { module } => db.eqwalizing_start(module),
-            MsgFromEqWAlizer::EqwalizingDone { module } => db.eqwalizing_done(module),
+            MsgFromEqWAlizer::EqwalizingDone { module } => db.eqwalizing_done(&module),
             MsgFromEqWAlizer::Done {
                 diagnostics,
                 type_info,
@@ -462,8 +460,7 @@ fn get_module_diagnostics(
             }
             MsgFromEqWAlizer::Dependencies { modules } => {
                 modules.iter().for_each(|module| {
-                    let module = ModuleName::new(module);
-                    _ = db.transitive_stub_bytes(project_id, module);
+                    _ = db.transitive_stub_bytes(project_id, module.clone());
                 });
             }
             msg => {

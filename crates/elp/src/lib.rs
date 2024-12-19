@@ -111,7 +111,7 @@ pub fn otp_file_to_ignore(db: &Analysis, file_id: FileId) -> bool {
                 .collect();
     }
     if let Some(module_name) = db.module_name(file_id).unwrap() {
-        SET.contains(module_name.as_str())
+        SET.contains(module_name.as_unquoted_str())
     } else {
         false
     }

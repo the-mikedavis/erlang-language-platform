@@ -30,7 +30,7 @@ pub(crate) fn add_completions(
     let prefix = &helpers::atom_value(parsed, file_position.offset).unwrap_or_default();
     if let Some(modules) = sema.resolve_module_names(file_position.file_id) {
         let completions = modules.into_iter().filter_map(|m| {
-            if m.starts_with(prefix) {
+            if m.as_unquoted_str().starts_with(prefix) {
                 Some(Completion {
                     label: m.to_string(),
                     kind: Kind::Module,

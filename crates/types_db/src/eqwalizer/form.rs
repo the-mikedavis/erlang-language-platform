@@ -7,6 +7,7 @@
  * of this source tree.
  */
 
+use elp_base_db::AtomName;
 use elp_syntax::SmolStr;
 use serde::Deserialize;
 use serde::Serialize;
@@ -152,7 +153,7 @@ pub struct Callback {
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 pub struct RecDecl {
     pub location: eqwalizer::Pos,
-    pub name: SmolStr,
+    pub name: AtomName,
     #[serde(default)]
     pub fields: Vec<RecField>,
     pub refinable: bool,
@@ -161,7 +162,7 @@ pub struct RecDecl {
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 pub struct RecField {
-    pub name: SmolStr,
+    pub name: AtomName,
     pub tp: Option<Type>,
     pub default_value: Option<expr::Expr>,
     pub refinable: bool,
@@ -242,7 +243,7 @@ pub struct ExternalOptionalCallbacks {
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 pub struct ExternalRecDecl {
     pub location: eqwalizer::Pos,
-    pub name: SmolStr,
+    pub name: AtomName,
     #[serde(default)]
     pub fields: Vec<ExternalRecField>,
     pub file: Option<SmolStr>,
@@ -250,7 +251,7 @@ pub struct ExternalRecDecl {
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 pub struct ExternalRecField {
-    pub name: SmolStr,
+    pub name: AtomName,
     pub tp: Option<ext_types::ExtType>,
     pub default_value: Option<expr::Expr>,
 }
@@ -272,14 +273,14 @@ pub struct InvalidFunSpec {
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 pub struct InvalidRecDecl {
     pub location: eqwalizer::Pos,
-    pub name: SmolStr,
+    pub name: AtomName,
     pub te: Invalid,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 pub struct InvalidConvertTypeInRecDecl {
     pub location: eqwalizer::Pos,
-    pub name: SmolStr,
+    pub name: AtomName,
     pub te: Invalid,
 }
 

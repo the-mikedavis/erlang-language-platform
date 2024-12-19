@@ -60,7 +60,7 @@ pub fn replace_in_spec(
                      name,
                      arity,
                  }| {
-                    if module == module_name.as_str() {
+                    if module.as_str() == module_name {
                         Some((name, arity))
                     } else {
                         None

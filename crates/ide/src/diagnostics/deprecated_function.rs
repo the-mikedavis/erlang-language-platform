@@ -218,7 +218,7 @@ fn fix_xref_ignore(
 
     let text = format!(
         "-ignore_xref([{{{}, {}, {}}}]).\n",
-        module.as_str(),
+        module,
         def.name.name(),
         def.name.arity()
     );

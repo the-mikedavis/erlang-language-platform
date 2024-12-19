@@ -9,6 +9,7 @@
 
 use eetf;
 use eetf::Term;
+use elp_base_db::AtomName;
 use elp_syntax::SmolStr;
 use elp_types_db::eqwalizer::binary_specifier::Specifier;
 use elp_types_db::eqwalizer::expr::AtomLit;
@@ -626,7 +627,7 @@ impl Converter {
         Err(ConversionError::InvalidRecordField)
     }
 
-    fn convert_atom_lit(&self, atom: &eetf::Term) -> Result<SmolStr, ConversionError> {
+    fn convert_atom_lit(&self, atom: &eetf::Term) -> Result<AtomName, ConversionError> {
         if let Term::Tuple(data) = atom {
             if let [Term::Atom(kind), _, Term::Atom(val)] = &data.elements[..] {
                 if kind.name == "atom" {

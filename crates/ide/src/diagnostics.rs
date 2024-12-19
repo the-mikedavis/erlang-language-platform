@@ -1351,7 +1351,7 @@ pub fn to_standard_diagnostics(
             .iter()
             .map(|(module, ds)| {
                 for d in ds {
-                    if let Some(file_id) = module_index.file_for_module(module.as_str()) {
+                    if let Some(file_id) = module_index.file_for_module(module) {
                         let value = res.entry(file_id).or_insert(Vec::new());
                         value.push(eqwalizer_to_diagnostic(&sema, file_id, d, true))
                     }

@@ -9,6 +9,8 @@
 
 use std::fmt;
 
+use elp_base_db::AtomName;
+use elp_base_db::ModuleName;
 use elp_syntax::SmolStr;
 use fxhash::FxHashMap;
 use serde::Deserialize;
@@ -97,7 +99,7 @@ impl Type {
         })
     }
 
-    pub fn builtin_type_aliases(module: &str) -> Vec<SmolStr> {
+    pub fn builtin_type_aliases(module: &str) -> Vec<AtomName> {
         match module {
             "erlang" => vec![
                 "string".into(),
@@ -129,8 +131,8 @@ impl Type {
         }
     }
 
-    pub fn builtin_type_alias_body(name: &str) -> Option<Type> {
-        match name {
+    pub fn builtin_type_alias_body(name: &AtomName) -> Option<Type> {
+        match name.as_unquoted_str() {
             "string" => Some(Type::ListType(ListType {
                 t: Box::new(Type::CHAR_TYPE),
             })),
@@ -260,7 +262,7 @@ impl fmt::Display for Type {
             Type::AnyTupleType => write!(f, "tuple()"),
             Type::AtomType => write!(f, "atom()"),
             Type::NilType => write!(f, "[]"),
-            Type::RecordType(rec) => write!(f, "#{}{{}}", rec.name.as_str()),
+            Type::RecordType(rec) => write!(f, "#{}{{}}", rec.name),
             Type::VarType(v) => write!(f, "{}", v.name.as_str()),
             Type::BinaryType => write!(f, "binary()"),
             Type::NoneType => write!(f, "none()"),
@@ -346,7 +348,7 @@ impl fmt::Display for Type {
                 ty.v_type
             ),
             Type::ListType(ty) => write!(f, "[{}]", ty.t),
-            Type::RefinedRecordType(ty) => write!(f, "#{}{{}}", ty.rec_type.name.as_str()),
+            Type::RefinedRecordType(ty) => write!(f, "#{}{{}}", ty.rec_type.name),
             Type::BoundedDynamicType(ty) => write!(f, "dynamic({})", ty.bound),
         }
     }
@@ -410,15 +412,15 @@ pub struct VarType {
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 pub struct RecordType {
-    pub name: SmolStr,
-    pub module: SmolStr,
+    pub name: AtomName,
+    pub module: ModuleName,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 pub struct RefinedRecordType {
     pub rec_type: RecordType,
     #[serde(default)]
-    pub fields: FxHashMap<SmolStr, Type>,
+    pub fields: FxHashMap<AtomName, Type>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]

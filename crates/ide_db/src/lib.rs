@@ -21,6 +21,7 @@ use elp_base_db::FileLoader;
 use elp_base_db::FileLoaderDelegate;
 use elp_base_db::FilePosition;
 use elp_base_db::FileRange;
+use elp_base_db::ModuleName;
 use elp_base_db::ProjectId;
 use elp_base_db::SourceDatabase;
 use elp_base_db::Upcast;
@@ -96,8 +97,8 @@ type EqwalizerProgressReporterBox =
     Arc<AssertUnwindSafe<Mutex<Option<Box<dyn EqwalizerProgressReporter>>>>>;
 
 pub trait EqwalizerProgressReporter: Send + Sync + RefUnwindSafe {
-    fn start_module(&mut self, module: String);
-    fn done_module(&mut self, module: &str);
+    fn start_module(&mut self, module: ModuleName);
+    fn done_module(&mut self, module: &ModuleName);
 }
 
 #[salsa::database(
@@ -120,7 +121,7 @@ pub struct RootDatabase {
     erlang_services: Arc<AssertUnwindSafe<RwLock<FxHashMap<ProjectId, Connection>>>>,
     eqwalizer: Eqwalizer,
     eqwalizer_progress_reporter: EqwalizerProgressReporterBox,
-    ipc_handles: Arc<AssertUnwindSafe<RwLock<FxHashMap<String, Arc<Mutex<IpcHandle>>>>>>,
+    ipc_handles: Arc<AssertUnwindSafe<RwLock<FxHashMap<ModuleName, Arc<Mutex<IpcHandle>>>>>>,
 }
 impl Default for RootDatabase {
     fn default() -> Self {
@@ -401,7 +402,7 @@ impl TypedSemantic for RootDatabase {
             EqwalizerDiagnostics::Error(err) => {
                 log::error!(
                     "EqWAlizer failed for {}: {}",
-                    module.as_str(),
+                    module,
                     limit_logged_string(err)
                 );
                 Some(vec![])

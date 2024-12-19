@@ -39,8 +39,9 @@ pub fn unexported_type(
         },
     }))) = &d.diagnostic
     {
-        if let Some(module) = resolve_module_name(sema, file_id, module) {
-            let name = NameArity::new(Name::from_erlang_service(name), *arity);
+        if let Some(module) = resolve_module_name(sema, file_id, module.as_unquoted_str()) {
+            // TODO: change type index to use atoms. NameArity should be AtomName.
+            let name = NameArity::new(Name::from_erlang_service(name.as_unquoted_str()), *arity);
             if let Some(type_alias) = sema
                 .db
                 .def_map(module.file.file_id)

@@ -193,7 +193,7 @@ impl SymbolDefinition {
                                     "Function '{}/{}' already in scope in module '{}'",
                                     new_name,
                                     arity,
-                                    module_name.as_str()
+                                    module_name
                                 );
                             } else {
                                 rename_error!("Function '{}/{}' already in scope", new_name, arity);

@@ -12,7 +12,6 @@ use std::fs::File;
 use std::io::Write;
 use std::path::Path;
 use std::path::PathBuf;
-use std::str;
 
 use anyhow::bail;
 use anyhow::Result;
@@ -28,6 +27,7 @@ use elp_ide::diagnostics::DiagnosticsConfig;
 use elp_ide::diagnostics::LabeledDiagnostics;
 use elp_ide::diagnostics::RemoveElpReported;
 use elp_ide::diagnostics_collection::DiagnosticCollection;
+use elp_ide::elp_ide_db::elp_base_db::AtomName;
 use elp_ide::elp_ide_db::elp_base_db::FileId;
 use elp_ide::elp_ide_db::elp_base_db::FileSource;
 use elp_ide::elp_ide_db::elp_base_db::IncludeOtp;
@@ -269,7 +269,7 @@ fn do_parse_all_par(
                     && file_source == FileSource::Src
                     && db.file_app_type(file_id).ok() != Some(Some(AppType::Dep))
                 {
-                    do_parse_one(db, vfs, config, to, file_id, module_name.as_str()).unwrap()
+                    do_parse_one(db, vfs, config, to, file_id, module_name).unwrap()
                 } else {
                     None
                 }
@@ -299,7 +299,7 @@ fn do_parse_all_seq(
                 && file_source == FileSource::Src
                 && db.file_app_type(file_id).ok() != Some(Some(AppType::Dep))
             {
-                do_parse_one(&db, vfs, config, to, file_id, module_name.as_str()).unwrap()
+                do_parse_one(&db, vfs, config, to, file_id, module_name).unwrap()
             } else {
                 None
             }
@@ -313,7 +313,7 @@ fn do_parse_one(
     config: &DiagnosticsConfig,
     to: &Option<PathBuf>,
     file_id: FileId,
-    name: &str,
+    name: &AtomName,
 ) -> Result<Option<ParseResult>> {
     let url = file_id_to_url(vfs, file_id);
     let native = db.native_diagnostics(config, &vec![], file_id)?;

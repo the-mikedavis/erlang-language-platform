@@ -25,6 +25,7 @@ use anyhow::bail;
 use anyhow::Context;
 use anyhow::Result;
 use elp_base_db::limit_logged_string;
+use elp_base_db::ModuleName;
 use elp_types_db::eqwalizer::types::Type;
 use elp_types_db::eqwalizer::EqwalizerDiagnostic;
 use fxhash::FxHashMap;
@@ -46,24 +47,24 @@ pub enum EqWAlizerASTFormat {
 #[serde(tag = "tag", content = "content")]
 pub enum MsgFromEqWAlizer {
     EnteringModule {
-        module: String,
+        module: ModuleName,
     },
     GetAstBytes {
-        module: String,
+        module: ModuleName,
         format: EqWAlizerASTFormat,
     },
     EqwalizingStart {
-        module: String,
+        module: ModuleName,
     },
     EqwalizingDone {
-        module: String,
+        module: ModuleName,
     },
     Dependencies {
-        modules: Vec<String>,
+        modules: Vec<ModuleName>,
     },
     Done {
-        diagnostics: FxHashMap<String, Vec<EqwalizerDiagnostic>>,
-        type_info: FxHashMap<String, Vec<(Pos, Type)>>,
+        diagnostics: FxHashMap<ModuleName, Vec<EqwalizerDiagnostic>>,
+        type_info: FxHashMap<ModuleName, Vec<(Pos, Type)>>,
     },
 }
 

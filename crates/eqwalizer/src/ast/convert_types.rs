@@ -7,6 +7,7 @@
  * of this source tree.
  */
 
+use elp_base_db::ModuleName;
 use elp_syntax::SmolStr;
 use elp_types_db::eqwalizer::ext_types::ConstrainedFunType;
 use elp_types_db::eqwalizer::ext_types::ExtProp;
@@ -48,12 +49,12 @@ use super::TypeConversionError;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct TypeConverter {
-    module: SmolStr,
+    module: ModuleName,
     in_rec_decl: bool,
 }
 
 impl TypeConverter {
-    pub fn new(module: SmolStr) -> Self {
+    pub fn new(module: ModuleName) -> Self {
         TypeConverter {
             module,
             in_rec_decl: false,

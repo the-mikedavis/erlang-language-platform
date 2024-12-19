@@ -68,7 +68,7 @@ use super::AST;
 use crate::ast;
 
 struct Expander<'d> {
-    module: SmolStr,
+    module: ModuleName,
     project_id: ProjectId,
     invalids: Vec<InvalidForm>,
     db: &'d dyn EqwalizerASTDatabase,
@@ -297,12 +297,12 @@ impl Expander<'_> {
                 };
                 let is_defined = self
                     .db
-                    .type_ids(self.project_id, ModuleName::new(ty.id.module.as_str()))
+                    .type_ids(self.project_id, ty.id.module.clone())
                     .map(|ids| ids.contains(&local_id))
                     .unwrap_or(false);
                 let is_exported = self
                     .db
-                    .exported_type_ids(self.project_id, ModuleName::new(ty.id.module.as_str()))
+                    .exported_type_ids(self.project_id, ty.id.module.clone())
                     .map(|ids| ids.contains(&local_id))
                     .unwrap_or(false);
                 if !is_defined {
@@ -626,7 +626,7 @@ impl StubExpander<'_> {
     pub fn new<'d>(
         db: &'d dyn EqwalizerASTDatabase,
         project_id: ProjectId,
-        module: SmolStr,
+        module: ModuleName,
         ast: &AST,
     ) -> StubExpander<'d> {
         let expander = Expander {
@@ -636,10 +636,7 @@ impl StubExpander<'_> {
             project_id,
         };
         let type_converter = TypeConverter::new(module.clone());
-        let stub = ModuleStub {
-            module,
-            ..ModuleStub::default()
-        };
+        let stub = ModuleStub::new(module);
         let module_file = ast
             .iter()
             .find_map(|form| match form {
@@ -762,7 +759,7 @@ impl StubExpander<'_> {
     }
 
     fn add_extra_types(&mut self) {
-        if let "erlang" = self.stub.module.as_str() {
+        if self.stub.module == "erlang" {
             let pos: ast::Pos = {
                 if self
                     .expander

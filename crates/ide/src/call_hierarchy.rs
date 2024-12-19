@@ -64,11 +64,8 @@ pub(crate) fn incoming_calls(db: &RootDatabase, position: FilePosition) -> Optio
                 let mut enclosing_function_nav = enclosing_function_def.to_nav(db);
                 if file_id != position.file_id {
                     if let Some(module_name) = sema.module_name(file_id) {
-                        enclosing_function_nav.name = SmolStr::new(format!(
-                            "{}:{}",
-                            module_name.as_str(),
-                            enclosing_function_nav.name
-                        ))
+                        enclosing_function_nav.name =
+                            SmolStr::new(format!("{}:{}", module_name, enclosing_function_nav.name))
                     }
                 }
                 calls.add(enclosing_function_nav, range);

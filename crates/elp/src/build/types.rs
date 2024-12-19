@@ -9,6 +9,7 @@
 
 use elp_ide::elp_ide_db::elp_base_db::FileId;
 use elp_ide::elp_ide_db::elp_base_db::FileSetConfig;
+use elp_ide::elp_ide_db::elp_base_db::ModuleName;
 use elp_ide::elp_ide_db::elp_base_db::ProjectId;
 use elp_ide::elp_ide_db::elp_base_db::Vfs;
 use elp_ide::elp_ide_db::EqwalizerProgressReporter;
@@ -58,17 +59,17 @@ impl LoadResult {
     ) -> R {
         struct Reporter {
             bar: ProgressBar,
-            current: FxHashSet<String>,
+            current: FxHashSet<ModuleName>,
         }
 
         impl EqwalizerProgressReporter for Reporter {
-            fn start_module(&mut self, module: String) {
+            fn start_module(&mut self, module: ModuleName) {
                 self.current.insert(module);
                 let current = self.current.iter().join(", ");
                 self.bar.set_message(current);
             }
 
-            fn done_module(&mut self, module: &str) {
+            fn done_module(&mut self, module: &ModuleName) {
                 self.current.remove(module);
                 let current = self.current.iter().join(", ");
                 self.bar.set_message(current);

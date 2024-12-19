@@ -474,7 +474,7 @@ fn eqwalize(
             {
                 let file_id = analysis
                     .module_index(loaded.project_id)?
-                    .file_for_module(module.as_str())
+                    .file_for_module(&module)
                     .with_context(|| format!("module {} not found", module))?;
                 reporter.write_eqwalizer_diagnostics(file_id, &diagnostics)?;
                 if !diagnostics.is_empty() {
@@ -492,7 +492,9 @@ fn eqwalize(
             }
         }
         EqwalizerDiagnostics::NoAst { module } => {
-            if let Some(file_id) = analysis.module_file_id(loaded.project_id, &module)? {
+            if let Some(file_id) =
+                analysis.module_file_id(loaded.project_id, module.as_unquoted_str())?
+            {
                 let config = DiagnosticsConfig::default();
                 let erlang_service_diagnostics =
                     analysis.erlang_service_diagnostics(file_id, &config, RemoveElpReported::No)?;

@@ -8,49 +8,16 @@
  */
 
 use std::borrow::Borrow;
-use std::borrow::Cow;
 use std::fmt;
 use std::hash::Hash;
-use std::ops::Deref;
 use std::sync::Arc;
 
-use elp_syntax::SmolStr;
 use fxhash::FxHashMap;
 
-use crate::to_quoted_string;
 use crate::FileId;
 use crate::FileSource;
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash, PartialOrd, Ord)]
-pub struct ModuleName(SmolStr);
-
-impl ModuleName {
-    pub fn new(name: &str) -> Self {
-        ModuleName(SmolStr::new(name))
-    }
-
-    pub fn as_str(&self) -> &str {
-        self
-    }
-
-    pub fn to_quoted_string(&self) -> Cow<str> {
-        to_quoted_string(self.as_str())
-    }
-}
-
-impl Deref for ModuleName {
-    type Target = str;
-
-    fn deref(&self) -> &Self::Target {
-        &self.0
-    }
-}
-
-impl Borrow<str> for ModuleName {
-    fn borrow(&self) -> &str {
-        self.as_str()
-    }
-}
+pub type ModuleName = crate::AtomName;
 
 pub type Modules = Vec<ModuleName>;
 
