@@ -30,7 +30,9 @@ mod module_index;
 
 pub mod fixture;
 // @fb-only
+mod atom_name;
 pub mod test_utils;
+pub use atom_name::AtomName;
 pub use change::Change;
 pub use elp_project_model::AppType;
 pub use include::IncludeCtx;

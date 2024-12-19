@@ -21,6 +21,7 @@ paths.workspace = true
 profile.workspace = true
 regex.workspace = true
 salsa.workspace = true
+serde.workspace = true
 serde_json.workspace = true
 tracing.workspace = true
 stdx.workspace = true

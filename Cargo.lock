@@ -454,6 +454,7 @@ dependencies = [
  "profile",
  "regex",
  "salsa",
+ "serde",
  "serde_json",
  "stdx",
  "tracing",
