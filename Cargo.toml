@@ -7,6 +7,10 @@ resolver = "2"
 edition = "2021"
 version = "1.1.0"
 
+[profile.dev.package]
+# Workaround <https://github.com/tikv/jemallocator/issues/108>
+tikv-jemalloc-sys = { opt-level = 3 }
+
 [workspace.dependencies]
 # own local crates
 elp_base_db = { path = "./crates/base_db" }
